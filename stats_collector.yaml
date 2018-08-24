@@ -1,0 +1,57 @@
+base_url: 'stats/'
+
+prometheus:
+    join_delim: ':'
+    values: 'values'
+    labels: 'labels'
+
+data_type:
+    flow:
+        endpoints:
+          - url: 'flow/<dpid>'
+            interval: 1
+    meter:
+        prefix: 'of_meter'
+        filter: [1,2,3]
+        endpoints:
+            counters:
+                url: 'meter/<dpid>'
+                interval: 1
+                labels:
+                    - 'meter_id'
+                values:
+                    - 'duration_nsec'
+                    - 'duration_sec'
+                    - 'byte_in_count'
+                    - 'flow_count'
+                    - 'packet_in_count'
+                    - 'band_<i>_byte_band_count'
+                    - 'band_<i>_packet_band_count'
+            config:
+                url: 'meterconfig/<dpid>'
+                interval: 1
+                labels:
+                    - meter_id
+                values:
+                    - 'band_<i>_type'
+                    - 'band_<i>_rate'
+                    - 'band_<i>_burst_size'
+
+    port:
+        filter: [4,5,6,7]
+        endpoints:
+            url: 'port/<dpid>'
+            interval: 1
+
+
+    queue:
+        port: 7
+        filter: [0,1,2]
+        common_labels:
+          - 'queue_id'
+          - 'port_no'
+        endpoints:
+          - url: 'queue/<dpid>/<port>'
+            interval: 1
+          - url: 'queueconfig/<dpid>/<port>'
+            interval: 1
