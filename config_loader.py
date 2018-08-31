@@ -5,7 +5,7 @@ except ImportError:
     from yaml import Loader, Dumper
 
 
-def get_config(filename):
-    with open("configs/%s.yml" % filename) as f:
+def get_config():
+    with open("config.yaml") as f:
         config = load(f,Loader=Loader)
     return config

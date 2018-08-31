@@ -1,0 +1,87 @@
+hostname: 'sharat-1.centie.net.au'
+port: 8080
+dpid: 6
+base_url: 'stats/'
+
+prometheus:
+    join_delim: ':'
+
+data_type:
+    port:
+        filter:
+            key: 'port_no'
+            values: [4,5,6,7]
+        endpoints:
+            counters:
+                url: 'port/<dpid>'
+                interval: 1
+                labels:
+                    - 'port_no'
+                values:
+                    - 'rx_packets'
+                    - 'rx_bytes'
+                    - 'rx_errors'
+                    - 'tx_packets'
+                    - 'tx_bytes'
+                    - 'tx_errors'
+
+    flow:
+        endpoints:
+          counters:
+              url: 'flow/<dpid>'
+              interval: 1
+              labels:
+                  - 'table_id'
+                  - 'cookie'
+              values:
+                  - 'byte_count'
+                  - 'packet_count'
+                  - 'duration_sec'
+                  - 'duration_nsec'
+
+    meter:
+        filter:
+            key: 'meter_id'
+            values: [1,2,3]
+        endpoints:
+            counters:
+                url: 'meter/<dpid>'
+                interval: 1
+                labels:
+                    - 'meter_id'
+                values:
+                    - 'duration_nsec'
+                    - 'duration_sec'
+                    - 'byte_in_count'
+                    - 'flow_count'
+                    - 'packet_in_count'
+                    - 'band_<i>_byte_band_count'
+                    - 'band_<i>_packet_band_count'
+            config:
+                url: 'meterconfig/<dpid>'
+                interval: 1
+                labels:
+                    - meter_id
+                values:
+                    - 'band_<i>_type'
+                    - 'band_<i>_rate'
+                    - 'band_<i>_burst_size'
+
+
+
+
+    queue:
+        port: 7
+        filter:
+            key: 'queue_id'
+            values: [1,2,3]
+        common_labels:
+          - 'queue_id'
+          - 'port_no'
+        endpoints:
+          counters:
+            url: 'queue/<dpid>/<port>'
+            interval: 1        
+          config:
+              url: 'queueconfig/<dpid>/<port>'
+              interval: 1
