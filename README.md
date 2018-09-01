@@ -1,1 +1,2 @@
-"# Ryu-REST-to-Prometheus" 
+# Ryu-REST-to-Prometheus
+Pull from Ryu and publish to prometheusDB.
