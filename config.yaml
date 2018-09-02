@@ -5,16 +5,21 @@ base_url: 'stats/'
 
 prometheus:
     join_delim: ':'
+    port: 4545
+
+csvwriter:
+    dir: 'data/test/'
 
 data_type:
     port:
+        enable: true
         filter:
             key: 'port_no'
             values: [4,5,6,7]
         endpoints:
             counters:
                 url: 'port/<dpid>'
-                interval: 1
+                interval: 8
                 labels:
                     - 'port_no'
                 values:
@@ -26,10 +31,11 @@ data_type:
                     - 'tx_errors'
 
     flow:
+        enable: true
         endpoints:
           counters:
               url: 'flow/<dpid>'
-              interval: 1
+              interval: 5
               labels:
                   - 'table_id'
                   - 'cookie'
@@ -39,7 +45,37 @@ data_type:
                   - 'duration_sec'
                   - 'duration_nsec'
 
+    queue:
+        enable: true
+        filter:
+            key: 'queue_id'
+            values: [0,1,2,3]
+        common_labels:
+          - 'queue_id'
+          - 'port_no'
+        endpoints:
+          counters:
+            url: 'queue/<dpid>/7' #7->port_no
+            interval: 1
+            labels:
+                - 'queue_id'
+                - 'port_no'
+            values:
+                - 'tx_bytes'
+                - 'tx_packets' 
+                - 'tx_errors'       
+          config:
+              url: 'queueconfig/<dpid>/7' #7->port_no
+              interval: 1
+              labels:
+                - 'queue_id'
+                - 'port_no'
+              values:
+                - 'min_rate'
+                - 'max_rate'
+
     meter:
+        enable: false
         filter:
             key: 'meter_id'
             values: [1,2,3]
@@ -66,22 +102,3 @@ data_type:
                     - 'band_<i>_type'
                     - 'band_<i>_rate'
                     - 'band_<i>_burst_size'
-
-
-
-
-    queue:
-        port: 7
-        filter:
-            key: 'queue_id'
-            values: [1,2,3]
-        common_labels:
-          - 'queue_id'
-          - 'port_no'
-        endpoints:
-          counters:
-            url: 'queue/<dpid>/<port>'
-            interval: 1        
-          config:
-              url: 'queueconfig/<dpid>/<port>'
-              interval: 1

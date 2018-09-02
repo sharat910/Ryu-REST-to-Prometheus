@@ -1,59 +1,82 @@
+from threading import Thread
 import requests
-import threading
+import logging
 import time
-from prometheus_client import Gauge
+from pprint import pprint
 
-from ..config_loader import get_config
+class Collector(Thread):
+    """docstring for Collector."""
+    def __init__(self, dpid, url, interval, prom_client,csv_writer,filter_dict=None):
+        super(Collector, self).__init__()
+        self.url = url.replace("<dpid>",str(dpid))
+        self.dpid = dpid
+        self.interval = interval
+        self.prom_client = prom_client
+        self.csv_writer = csv_writer
+        self.filter_dict = filter_dict
 
-class StatCollector(object):
-    """docstring for StatCollector."""
-    def __init__(self, app_config):
-        super(StatCollector, self).__init__()
-        self.app_config = app_config
-        self.config = get_config("stats_collector")
-        self.base_url = self.get_base_url()
-        self.endpoints = []
-        self.prom = {} #data_type -> key -> Gauge
-
-    def init_prometheus(self,endpoints):
-        for endpoint_type in self.endpoints:
-            delim = self.config['prometheus']['join_delim']
-            root_key = delim.join([
-                            self.meter_config['prefix'],endpoint_type])
-            labels,values = self.get_labels_and_values(endpoint_type)
-            for value in values:
-                key = delim.join([root_key,value])
-                self.prom[key] = Gauge(key,value,labels)
-
-    def get_base_url(self):
-        url = "http://%s:%s" % (self.app_config['hostname'],
-                                self.app_config['port'])
-        return url + self.config['base_url']
-
-    def fetch_from_endpoints(self):
-        for endpoint in self.endpoints:
-            endpoint_type = endpoint[endpoint.keys()[0]]
-            endpoint_info = endpoint[endpoint_type]
-            url = self.base_url + endpoint_info['url']
-            self.spawn_fetcher(endpoint_type, url,endpoint_info['interval'])
-
-    def spawn_fetcher(self,endpoint_type,url,interval):
-        t = threading.Thread(target=self.fetch, args = (endpoint_type,url,interval))
-        t.daemon = True
-        t.start()
-
-    def fetch(self,endpoint_type,url,interval):
+    def run(self):
         while True:
             t_start = time.time()
-            r = requests.get(url)
-            self.parse_and_publish(endpoint_type,r.body)
-            t_exec = time.time() - t_start
-            time.sleep(interval - t_exec)
+
+            #Get data and pase
+            r = requests.get(self.url)
+            data = []
+            try:
+                data = r.json()[str(self.dpid)]
+            except Exception as e:
+                logging.error("Eval error")
+                logging.error(e)
+
+            if self.filter_dict:
+                data = self.filter(data)
+
+            data = self.transform(data)
+            
+            pprint(data)
+            #Actions
+            self.prom_client.publish(data)
+            self.csv_writer.writerows(data)
 
 
-    def parse_and_publish(self,request_body):
-        pass
+            t_op = time.time() - t_start
 
-    def collect(self):
-        for data_type in self.config['data_types']:
-            self.init_prometheus()
+            print(self.prom_client.root_key,"Time taken:",t_op)
+
+            t_sleep = self.interval - t_op
+            if t_sleep < 0:
+                logging.error("Interval time not enough to complete operation.")
+                continue
+            else:
+                time.sleep(t_sleep)
+
+    def filter(self,data):
+        key = self.filter_dict['key']
+        values = self.filter_dict['values']
+        filtered = list(filter(lambda item: item[key] in values, data))
+        return filtered
+
+    def transform(self,data):
+        return data
+
+class QueueConfigCollector(Collector):
+
+    def transform(self,data):
+        new_data = []
+        for item in data:
+            new_item = {}
+            new_item['queue_id'] = item['queue_id']
+            new_item['port_no'] = item['port']
+            new_item['min_rate'] = [prop['rate'] for prop in item['properties'] \
+                                    if prop['property'] == 'MIN_RATE'][0]
+            new_item['max_rate'] = [prop['rate'] for prop in item['properties'] \
+                                    if prop['property'] == 'MAX_RATE'][0]
+            new_data.append(new_item)
+        return new_data
+
+    def filter(self,data):
+        key = self.filter_dict['key']
+        values = self.filter_dict['values']
+        filtered = list(filter(lambda item: item[key] in values, data[0]['queues']))
+        return filtered
+
