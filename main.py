@@ -41,4 +41,4 @@ def spawn_collectors(c):
 if __name__ == '__main__':
     c = get_config()
     spawn_collectors(c)
-    start_http_server(1234)
+    start_http_server(c['prometheus']['port'])
