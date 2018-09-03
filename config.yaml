@@ -44,9 +44,23 @@ data_type:
                   - 'packet_count'
                   - 'duration_sec'
                   - 'duration_nsec'
+    group:
+        enable: true
+        endpoints:
+          counters:
+              url: 'group/<dpid>'
+              interval: 5
+              labels:
+                  - 'group_id'
+              values:
+                  - 'byte_count'
+                  - 'packet_count'
+                  - 'duration_sec'
+                  - 'duration_nsec'
+                  - 'ref_count'
 
     queue:
-        enable: true
+        enable: false
         filter:
             key: 'queue_id'
             values: [0,1,2,3]
