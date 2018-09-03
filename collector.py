@@ -2,6 +2,7 @@ from threading import Thread
 import requests
 import logging
 import time
+from datetime import datetime
 from pprint import pprint
 
 class Collector(Thread):
@@ -33,7 +34,7 @@ class Collector(Thread):
 
             data = self.transform(data)
             
-            pprint(data)
+            #pprint(data)
             #Actions
             self.prom_client.publish(data)
             self.csv_writer.writerows(data)
@@ -41,7 +42,7 @@ class Collector(Thread):
 
             t_op = time.time() - t_start
 
-            print(self.prom_client.root_key,"Time taken:",t_op)
+            print(datetime.now(), self.prom_client.root_key,"Time taken:",t_op)
 
             t_sleep = self.interval - t_op
             if t_sleep < 0:

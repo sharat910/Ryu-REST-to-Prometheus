@@ -8,6 +8,7 @@ prometheus:
     port: 4545
 
 csvwriter:
+    enable: false
     dir: 'data/test/'
 
 data_type:
@@ -19,7 +20,7 @@ data_type:
         endpoints:
             counters:
                 url: 'port/<dpid>'
-                interval: 8
+                interval: 1
                 labels:
                     - 'port_no'
                 values:
@@ -35,7 +36,7 @@ data_type:
         endpoints:
           counters:
               url: 'flow/<dpid>'
-              interval: 5
+              interval: 1
               labels:
                   - 'table_id'
                   - 'cookie'
@@ -49,7 +50,7 @@ data_type:
         endpoints:
           counters:
               url: 'group/<dpid>'
-              interval: 5
+              interval: 1
               labels:
                   - 'group_id'
               values:
