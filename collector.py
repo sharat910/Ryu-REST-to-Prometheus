@@ -15,6 +15,7 @@ class Collector(Thread):
         self.prom_client = prom_client
         self.csv_writer = csv_writer
         self.filter_dict = filter_dict
+        self.setDaemon(True)
 
     def run(self):
         while True:

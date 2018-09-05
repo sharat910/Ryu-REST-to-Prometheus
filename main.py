@@ -1,3 +1,4 @@
+import time
 from pprint import pprint
 from prometheus_client import start_http_server
 
@@ -41,4 +42,7 @@ def spawn_collectors(c):
 if __name__ == '__main__':
     c = get_config()
     spawn_collectors(c)
+    print("Starting http server...")
     start_http_server(c['prometheus']['port'])
+    while True:
+        time.sleep(10)
